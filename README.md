@@ -63,10 +63,18 @@ python sainte_lague_nepal.py --seats 110 --threshold 3
 ## Deploy free on Render
 
 1. Push this repo to GitHub.
-2. Go to Render dashboard -> New -> Blueprint.
-3. Connect your GitHub repo and select it.
-4. Render detects `render.yaml` and deploys automatically.
-5. On each push to `main`, Render redeploys.
+2. In Render, create a **Web Service** (or use Blueprint from `render.yaml`).
+3. Ensure:
+   - Build command: `pip install -r requirements.txt`
+   - Start command: `gunicorn --bind 0.0.0.0:$PORT wsgi:app`
+4. Deploy and open the service URL.
+5. On each push to `main`, Render redeploys (`autoDeploy: true`).
+
+### Render troubleshooting
+
+- If you see **Not Found** immediately after deploy, verify the service type is **Web Service**, not Static Site.
+- Check `healthCheckPath` in [render.yaml](render.yaml), currently set to `/healthz`.
+- Use Render runtime logs to confirm Gunicorn started and Flask routes are mounted.
 
 ## CI
 
@@ -91,3 +99,7 @@ git branch -M main
 git remote add origin https://github.com/<your-username>/<your-repo>.git
 git push -u origin main
 ```
+
+## Line endings
+
+This repo includes `.gitattributes` to keep source files consistent with LF endings across platforms.
