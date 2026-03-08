@@ -60,6 +60,17 @@ python sainte_lague_nepal.py --seats 110 --threshold 3
 4. Render detects `render.yaml` and deploys automatically.
 5. On each push to `main`, Render redeploys.
 
+## CI
+
+GitHub Actions workflow is included at `.github/workflows/ci.yml`.
+- Triggers on push and pull request to `main`
+- Tests on Python 3.11 and 3.12
+- Installs dependencies and runs `pytest -q`
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE).
+
 ## Upload to GitHub
 
 If this directory is not already a git repo:
@@ -72,4 +83,3 @@ git branch -M main
 git remote add origin https://github.com/<your-username>/<your-repo>.git
 git push -u origin main
 ```
-
