@@ -1,0 +1,74 @@
+:root {
+    --bg-start: #f7fafc;
+    --bg-end: #eef3f8;
+    --accent: #0b5cab;
+    --muted: #5a6a7a;
+}
+
+body {
+    background: radial-gradient(circle at top right, #dceeff 0%, var(--bg-start) 40%, var(--bg-end) 100%);
+    min-height: 100vh;
+}
+
+.container {
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+}
+
+.hero h1 {
+    margin-bottom: 0.4rem;
+}
+
+.hero p {
+    color: var(--muted);
+}
+
+.controls {
+    margin: 1.2rem 0;
+    padding: 1rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(4px);
+}
+
+.controls button {
+    margin-top: 0.8rem;
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.8rem;
+}
+
+.cards article {
+    margin: 0;
+}
+
+.cards h4 {
+    font-size: 0.95rem;
+    color: var(--muted);
+}
+
+.cards p {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.table-wrap {
+    margin-top: 1rem;
+    overflow-x: auto;
+}
+
+.meta {
+    margin-top: 0.8rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.error-box {
+    border-left: 5px solid #b42318;
+}

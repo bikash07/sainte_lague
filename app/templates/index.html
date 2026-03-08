@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nepal PR Seat Allocation - Sainte-Lague</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+<main class="container">
+    <section class="hero">
+        <h1>Nepal House of Representatives PR Seats</h1>
+        <p>Sainte-Lague allocation from Election Commission Nepal PR vote feed (Election 2082 page).</p>
+    </section>
+
+    <section class="controls">
+        <form method="get">
+            <div class="grid">
+                <label>
+                    Total PR seats
+                    <input type="number" name="seats" min="1" value="{{ seats }}" required>
+                </label>
+                <label>
+                    Threshold (%)
+                    <input type="number" name="threshold" min="0" step="0.1" value="{{ threshold }}" required>
+                </label>
+            </div>
+            <button type="submit">Recalculate</button>
+        </form>
+    </section>
+
+    {% if error %}
+    <article class="error-box">
+        <h3>Unable to load data</h3>
+        <p>{{ error }}</p>
+    </article>
+    {% endif %}
+
+    {% if report %}
+    <section class="cards">
+        <article>
+            <h4>Total PR votes</h4>
+            <p>{{ "{:,}".format(report.total_votes_all_parties) }}</p>
+        </article>
+        <article>
+            <h4>Eligible votes</h4>
+            <p>{{ "{:,}".format(report.total_votes_eligible) }}</p>
+        </article>
+        <article>
+            <h4>Eligible parties</h4>
+            <p>{{ report.parties_eligible }} / {{ report.parties_all }}</p>
+        </article>
+        <article>
+            <h4>Parties with seats</h4>
+            <p>{{ report.parties_with_seats }}</p>
+        </article>
+    </section>
+
+    <section class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Party</th>
+                <th>Votes</th>
+                <th>Vote share</th>
+                <th>Seats</th>
+                <th>Seat share</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in report.rows if row.seats > 0 %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ row.party }}</td>
+                <td>{{ "{:,}".format(row.votes) }}</td>
+                <td>{{ "%.2f"|format(row.vote_share) }}%</td>
+                <td><strong>{{ row.seats }}</strong></td>
+                <td>{{ "%.2f"|format(row.seat_share) }}%</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <p class="meta">
+        Generated at (UTC): {{ report.generated_at_utc }} |
+        Seats: {{ report.total_seats }} |
+        Threshold: {{ "%.1f"|format(report.threshold) }}%
+    </p>
+    {% endif %}
+</main>
+</body>
+</html>
