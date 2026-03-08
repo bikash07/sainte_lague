@@ -1,9 +1,10 @@
-# Nepal PR Seat Allocation (Sainte-Lague)
+# Nepal Election Dashboard (PR + FPTP)
 
 Production-ready Flask web app that:
-- Fetches PR vote counts from Election Commission Nepal (`PRVoteChartResult2082.aspx` data source).
-- Applies the Sainte-Lague method for House of Representatives PR seat allocation.
-- Supports configurable seat count and threshold from UI and API.
+- Fetches PR vote counts from Election Commission Nepal (`PRVoteChartResult2082.aspx`).
+- Computes House of Representatives PR seat allocation using Sainte-Lague.
+- Fetches FPTP party result standings (`FPTPWLChartResult2082.aspx`).
+- Shows both PR and FPTP data in a tabbed dashboard with tables and pie charts.
 
 ## Project structure
 
@@ -16,6 +17,7 @@ Production-ready Flask web app that:
 |   |-- service.py
 |   |-- routes.py
 |   |-- static/css/styles.css
+|   |-- static/js/main.js
 |   `-- templates/index.html
 |-- tests/test_seat_allocator.py
 |-- requirements.txt
@@ -45,6 +47,12 @@ Open: `http://127.0.0.1:5000`
 ## API
 
 `GET /api/allocation?seats=110&threshold=3`
+
+`GET /api/fptp`
+
+`GET /api/dashboard?seats=110&threshold=3`
+
+`GET /healthz`
 
 ## CLI (optional)
 

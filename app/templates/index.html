@@ -3,93 +3,179 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Nepal PR Seat Allocation - Sainte-Lague</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <title>Nepal Election Dashboard - PR and FPTP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-<main class="container">
-    <section class="hero">
-        <h1>Nepal House of Representatives PR Seats</h1>
-        <p>Sainte-Lague allocation from Election Commission Nepal PR vote feed (Election 2082 page).</p>
-    </section>
+    <main class="shell">
+        <section class="hero">
+            <p class="kicker">Nepal House of Representatives 2082</p>
+            <h1>Election Results Dashboard</h1>
+            <p class="subtitle">
+                Proportional Representation (PR) seat calculation via Sainte-Lague and First-Past-The-Post (FPTP) party standings from Election Commission Nepal.
+            </p>
+            <div class="source-links">
+                <a href="https://result.election.gov.np/PRVoteChartResult2082.aspx" target="_blank" rel="noopener noreferrer">PR Source</a>
+                <a href="https://result.election.gov.np/FPTPWLChartResult2082.aspx" target="_blank" rel="noopener noreferrer">FPTP Source</a>
+            </div>
+        </section>
 
-    <section class="controls">
-        <form method="get">
-            <div class="grid">
+        {% if error %}
+        <section class="error-box">
+            <h3>Unable to load election data</h3>
+            <p>{{ error }}</p>
+        </section>
+        {% endif %}
+
+        {% if report %}
+        <section class="controls">
+            <form method="get">
                 <label>
-                    Total PR seats
+                    PR seats
                     <input type="number" name="seats" min="1" value="{{ seats }}" required>
                 </label>
                 <label>
                     Threshold (%)
                     <input type="number" name="threshold" min="0" step="0.1" value="{{ threshold }}" required>
                 </label>
+                <button type="submit">Recalculate PR Allocation</button>
+            </form>
+            <p class="meta">
+                Last refreshed (UTC): {{ report.generated_at_utc }}
+            </p>
+        </section>
+
+        <section class="tabs">
+            <button class="tab is-active" data-tab-target="pr-panel" type="button">PR (Sainte-Lague)</button>
+            <button class="tab" data-tab-target="fptp-panel" type="button">FPTP</button>
+        </section>
+
+        <section id="pr-panel" class="panel is-active">
+            <div class="cards">
+                <article class="stat"><span>Total PR votes</span><strong>{{ "{:,}".format(report.pr.total_votes_all_parties) }}</strong></article>
+                <article class="stat"><span>Eligible votes</span><strong>{{ "{:,}".format(report.pr.total_votes_eligible) }}</strong></article>
+                <article class="stat"><span>Eligible parties</span><strong>{{ report.pr.parties_eligible }} / {{ report.pr.parties_all }}</strong></article>
+                <article class="stat"><span>Parties with seats</span><strong>{{ report.pr.parties_with_seats }}</strong></article>
             </div>
-            <button type="submit">Recalculate</button>
-        </form>
-    </section>
 
-    {% if error %}
-    <article class="error-box">
-        <h3>Unable to load data</h3>
-        <p>{{ error }}</p>
-    </article>
-    {% endif %}
+            <div class="viz-grid">
+                <article class="chart-card">
+                    <h3>PR Seat Share (Pie)</h3>
+                    <div class="chart-slot">
+                        <canvas id="prPieChart"></canvas>
+                    </div>
+                </article>
+                <article class="table-card">
+                    <h3>PR Allocation Table</h3>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Party</th>
+                                <th>Votes</th>
+                                <th>Vote share</th>
+                                <th>Seats</th>
+                                <th>Seat share</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for row in report.pr.rows if row.seats > 0 %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ row.party }}</td>
+                                <td>{{ "{:,}".format(row.votes) }}</td>
+                                <td>{{ "%.2f"|format(row.vote_share) }}%</td>
+                                <td><strong>{{ row.seats }}</strong></td>
+                                <td>{{ "%.2f"|format(row.seat_share) }}%</td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </div>
+        </section>
 
-    {% if report %}
-    <section class="cards">
-        <article>
-            <h4>Total PR votes</h4>
-            <p>{{ "{:,}".format(report.total_votes_all_parties) }}</p>
-        </article>
-        <article>
-            <h4>Eligible votes</h4>
-            <p>{{ "{:,}".format(report.total_votes_eligible) }}</p>
-        </article>
-        <article>
-            <h4>Eligible parties</h4>
-            <p>{{ report.parties_eligible }} / {{ report.parties_all }}</p>
-        </article>
-        <article>
-            <h4>Parties with seats</h4>
-            <p>{{ report.parties_with_seats }}</p>
-        </article>
-    </section>
+        <section id="fptp-panel" class="panel">
+            <div class="cards">
+                <article class="stat"><span>Total won</span><strong>{{ report.fptp.total_won }}</strong></article>
+                <article class="stat"><span>Total leading</span><strong>{{ report.fptp.total_leading }}</strong></article>
+                <article class="stat"><span>Total tracked seats</span><strong>{{ report.fptp.total_constituencies }}</strong></article>
+                <article class="stat"><span>Parties in table</span><strong>{{ report.fptp.rows | length }}</strong></article>
+            </div>
 
-    <section class="table-wrap">
-        <table>
-            <thead>
-            <tr>
-                <th>Rank</th>
-                <th>Party</th>
-                <th>Votes</th>
-                <th>Vote share</th>
-                <th>Seats</th>
-                <th>Seat share</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for row in report.rows if row.seats > 0 %}
-            <tr>
-                <td>{{ loop.index }}</td>
-                <td>{{ row.party }}</td>
-                <td>{{ "{:,}".format(row.votes) }}</td>
-                <td>{{ "%.2f"|format(row.vote_share) }}%</td>
-                <td><strong>{{ row.seats }}</strong></td>
-                <td>{{ "%.2f"|format(row.seat_share) }}%</td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </section>
+            <div class="viz-grid">
+                <article class="chart-card">
+                    <h3>FPTP Won Seats (Pie)</h3>
+                    <div class="chart-slot">
+                        <canvas id="fptpPieChart"></canvas>
+                    </div>
+                </article>
+                <article class="table-card">
+                    <h3>FPTP Party Result Table</h3>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Party</th>
+                                <th>Won</th>
+                                <th>Leading</th>
+                                <th>Total (Win + Lead)</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for row in report.fptp.rows %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ row.party }}</td>
+                                <td><strong>{{ row.won }}</strong></td>
+                                <td>{{ row.leading }}</td>
+                                <td>{{ row.total }}</td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </div>
+        </section>
 
-    <p class="meta">
-        Generated at (UTC): {{ report.generated_at_utc }} |
-        Seats: {{ report.total_seats }} |
-        Threshold: {{ "%.1f"|format(report.threshold) }}%
-    </p>
-    {% endif %}
-</main>
+        <script>
+            window.dashboardData = {
+                pr: {
+                    labels: [
+                        {% for row in report.pr.rows if row.seats > 0 %}
+                        {{ row.party|tojson }}{{ "," if not loop.last else "" }}
+                        {% endfor %}
+                    ],
+                    values: [
+                        {% for row in report.pr.rows if row.seats > 0 %}
+                        {{ row.seats }}{{ "," if not loop.last else "" }}
+                        {% endfor %}
+                    ]
+                },
+                fptp: {
+                    labels: [
+                        {% for row in report.fptp.rows if row.won > 0 %}
+                        {{ row.party|tojson }}{{ "," if not loop.last else "" }}
+                        {% endfor %}
+                    ],
+                    values: [
+                        {% for row in report.fptp.rows if row.won > 0 %}
+                        {{ row.won }}{{ "," if not loop.last else "" }}
+                        {% endfor %}
+                    ]
+                }
+            };
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+        <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+        {% endif %}
+    </main>
 </body>
 </html>
